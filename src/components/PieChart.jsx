@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 
 function PieChart({ data }) {
     const svgRef = useRef();
-
+    
     useEffect(() => {
         const width = 500;
         const height = 500;
@@ -33,30 +33,23 @@ function PieChart({ data }) {
             .attr('d', arc)
             .attr('fill', (d, i) => d3.schemeCategory10[i]);
 
-        svg.selectAll('.arc')
-            .on('mouseover', function () {
-                d3.select(this).attr('opacity', 0.7);
-            })
-            .on('mouseout', function () {
-                d3.select(this).attr('opacity', 1);
-            });
-
-        svg.selectAll('.arc')
+        // Adding annotations
+        svg.selectAll('.annotation')
             .data(arcs)
             .enter()
             .append('text')
-            .attr('transform', (d) => `translate(${arc.centroid(d)})`)
+            .attr('class', 'annotation')
+            .attr('transform', d => `translate(${arc.centroid(d)})`)
+            .attr('dy', '0.35em')
             .attr('text-anchor', 'middle')
-            .attr('font-size', '12px')
-            .text((d) => d.year);
+            .text(d => `${d.data.value}`)
+            .attr('fill', 'white')
+            .style('font-size', '12px');
 
-        return () => {
-            svg.selectAll('*').remove(); // Cleanup SVG
-        };
     }, [data]);
 
     return (
-        <svg ref={svgRef}></svg>
+        <svg ref={svgRef} style={{ overflow: 'visible' }}></svg>
     );
 }
 

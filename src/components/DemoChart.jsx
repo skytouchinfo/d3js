@@ -1,8 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react'
-import * as d3 from 'd3'
-
-
-
+import React, { useEffect, useRef, useState } from 'react';
+import * as d3 from 'd3';
 
 function DemoChart() {
     const [data, setData] = useState([
@@ -33,7 +30,15 @@ function DemoChart() {
         {
             "year": 2020,
             "value": 70
-        }
+        },
+        {
+            "year": 2021,
+            "value": 70
+        },
+        {
+            "year": 2022,
+            "value": 70
+        },
     ]);
     const svgRef = useRef();
     const [element, setElement] = useState(null)
@@ -41,28 +46,16 @@ function DemoChart() {
     const ractWidth = 50;
     const ractHeight = 100;
     useEffect(() => {
-        console.log("🚀 ~ formattedData ~ formattedData:", data)
-
-        // setData(formattedData);
-        // const svg = d3.select(svgRef.current);
-        // svg.selectAll('circle').data(data).join(
-        //     enter => {
-        //         setElement(enter)
-        //         enter.append('circle').attr('class', 'enter').attr("r", val => val).attr("fill", "white").attr("cx", val => val * 2)
-        //             .attr("cy", val => val * 2).attr('stroke', 'red')
-        //     },
-        //     update => update.attr('class', 'update'),
-        //     exit => exit.remove()
-        // )
-        const width = 500;
+        const width = document.querySelector("body").clientWidth;
         const height = 500;
+        const margin = { top: 20, right: 30, bottom: 55, left: 70 }
 
-        const barChart = d3.select(barRef.current);
+        const barChart = d3.select(barRef.current).attr("viewBox", [0, 0, width, height]);
 
         const xScale = d3.scaleBand()
             .domain(data.map((item) => item.year))
             .range([0, width])
-            .padding(0.4);
+            .padding(0.3);
 
         const xAxis = d3.axisBottom(xScale).ticks(data.length);
         const yScale = d3.scaleLinear()
@@ -72,22 +65,37 @@ function DemoChart() {
         const yAxis = d3.axisLeft(yScale).ticks(data.length).tickSize(-width);
 
         barChart.append("g")
-            .call(xAxis)
-            .attr("transform", `translate(0,${height})`);
+            .call(xAxis).attr("font-size", "20px")
+            .attr("transform", `translate(0,${height})`)
+            .classed("x-axis", true);
 
         barChart.append("g")
-            .call(yAxis)
+            .call(yAxis).attr("font-size", "20px")
+            .classed("y-axis", true);
 
-        barChart.selectAll('rect')
+        const gradient = barChart.append("defs").append("linearGradient")
+            .attr("id", "barGradient")
+            .attr("x1", "0%").attr("y1", "0%")
+            .attr("x2", "0%").attr("y2", "100%");
+        gradient.append("stop").attr("offset", "0%").attr("stop-color", "pink");
+        gradient.append("stop").attr("offset", "100%").attr("stop-color", "white");
+
+        barChart.selectAll('.bar-group')
             .data(data)
-            .join("rect")
+            .enter()
+            .append("g")
+            .attr("class", "bar-group")
+            .attr("transform", d => `translate(${xScale(d.year)}, 0)`)
+            .append("rect")
             .attr("class", "bar")
             .attr('width', xScale.bandwidth())
             .attr('height', 0)
-            .attr('x', (d) => xScale(d.year))
+            .attr('x', 0)
             .attr('y', height)
             .attr("stroke", "yellow")
-            .attr("fill", "green").transition() // Apply transition for animation
+            .attr("fill", "url(#barGradient)") // Apply gradient fill
+            .attr("ry", 8) // border-radius for top-left and top-right corners
+            .transition() // Apply transition for animation
             .duration(1000) // Duration of animation in milliseconds
             .attr('height', (d) => height - yScale(d.value))
             .attr('y', (d) => yScale(d.value));
@@ -101,20 +109,15 @@ function DemoChart() {
         barChart.select(".y-axis")
             .call(yAxis);
 
-        console.log("data", data)
         return () => {
-            barChart.selectAll('rect').remove();
+            barChart.selectAll('.bar-group').remove();
             barChart.selectAll('g').remove();
         };
     }, [data])
-    // console.log("🚀 ~ DemoChart ~ element:", element)             
+
     return (
         <>
-            {/* <svg ref={svgRef}></svg> */}
-            {/* // update the chart */}
-            <svg ref={barRef} width={500} height={500} style={{ display: 'flex', justifyContent: 'center', alignItems: "center", overflow: 'visible' }}>
-
-            </svg>
+            <svg ref={barRef} width={500} height={500} style={{ display: 'flex', justifyContent: 'center', alignItems: "center", overflow: 'visible' }}></svg>
             <button style={{ marginTop: "50px" }} onClick={() => setData(data.map(val => ({
                 value: Math.floor(Math.random() * 100),
                 year: val.year
@@ -123,4 +126,4 @@ function DemoChart() {
     )
 }
 
-export default DemoChart
+export default DemoChart;
